@@ -1,0 +1,1938 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Primary Meta Tags & SEO -->
+  <title>Alex Mercer &mdash; Staff Creative Developer &amp; Design Technologist</title>
+  <meta name="description" content="Award-winning personal portfolio of Alex Mercer. Featuring advanced CSS3 architecture, CSS Grid Bento layouts, fluid typography, and accessible design systems.">
+  <meta name="author" content="Alex Mercer">
+  <link rel="canonical" href="https://alexmercer.dev">
+  <meta name="theme-color" content="#090d16">
+
+  <!-- Inter & JetBrains Mono Fonts via Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       1. CSS CUSTOM PROPERTIES & DESIGN TOKEN SYSTEM
+       ========================================================================== */
+    :root {
+      /* Core Color Palette & Dynamic Accent Hue */
+      --primary-hue: 250;
+      --primary-sat: 92%;
+      --primary-light: 66%;
+      
+      --color-primary: hsl(var(--primary-hue), var(--primary-sat), var(--primary-light));
+      --color-primary-hover: hsl(var(--primary-hue), var(--primary-sat), 56%);
+      --color-primary-alpha: hsla(var(--primary-hue), var(--primary-sat), var(--primary-light), 0.15);
+      --color-primary-glow: hsla(var(--primary-hue), 100%, 70%, 0.35);
+
+      --color-accent-teal: #14b8a6;
+      --color-accent-amber: #f59e0b;
+      --color-accent-rose: #f43f5e;
+      --color-accent-indigo: #6366f1;
+
+      /* Dark Theme (Default) Design Tokens */
+      --color-bg: #07090e;
+      --color-bg-alt: #0d111a;
+      --color-surface-1: #131824;
+      --color-surface-2: #1b2233;
+      --color-surface-3: #242d44;
+      --color-surface-glass: rgba(19, 24, 36, 0.72);
+      
+      --color-text-main: #f1f5f9;
+      --color-text-muted: #94a3b8;
+      --color-text-faint: #64748b;
+      
+      --color-border: rgba(255, 255, 255, 0.08);
+      --color-border-hover: rgba(255, 255, 255, 0.18);
+      --color-border-focus: var(--color-primary);
+
+      --color-card-border: 1px solid var(--color-border);
+      --glass-blur: 14px;
+
+      /* Multi-Tier Shadow Tokens */
+      --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+      --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.45);
+      --shadow-glow: 0 0 35px var(--color-primary-glow);
+
+      /* Typography Scale (Fluid clamp values) */
+      --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-family-mono: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      
+      --font-size-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.8125rem);
+      --font-size-sm: clamp(0.875rem, 0.82rem + 0.28vw, 0.9375rem);
+      --font-size-base: clamp(1rem, 0.95rem + 0.25vw, 1.0625rem);
+      --font-size-lg: clamp(1.125rem, 1.05rem + 0.38vw, 1.25rem);
+      --font-size-xl: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+      --font-size-2xl: clamp(1.65rem, 1.45rem + 1vw, 2.15rem);
+      --font-size-3xl: clamp(2.2rem, 1.8rem + 2vw, 3.25rem);
+      --font-size-hero: clamp(2.75rem, 2.1rem + 3.2vw, 4.75rem);
+
+      /* Spacing & Layout Density Tokens */
+      --space-unit: 1rem;
+      --space-xs: calc(var(--space-unit) * 0.25);
+      --space-sm: calc(var(--space-unit) * 0.5);
+      --space-md: calc(var(--space-unit) * 1);
+      --space-lg: calc(var(--space-unit) * 1.5);
+      --space-xl: calc(var(--space-unit) * 2.5);
+      --space-2xl: calc(var(--space-unit) * 4);
+
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-full: 9999px;
+
+      --container-max-width: 1280px;
+      --header-height: 72px;
+
+      /* Motion Transitions */
+      --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-base: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Light Theme Token Overrides */
+    [data-theme="light"] {
+      --color-bg: #f8fafc;
+      --color-bg-alt: #f1f5f9;
+      --color-surface-1: #ffffff;
+      --color-surface-2: #f1f5f9;
+      --color-surface-3: #e2e8f0;
+      --color-surface-glass: rgba(255, 255, 255, 0.82);
+
+      --color-text-main: #0f172a;
+      --color-text-muted: #475569;
+      --color-text-faint: #64748b;
+
+      --color-border: rgba(15, 23, 42, 0.08);
+      --color-border-hover: rgba(15, 23, 42, 0.18);
+      --color-card-border: 1px solid rgba(15, 23, 42, 0.07);
+
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+      --shadow-lg: 0 16px 36px rgba(15, 23, 42, 0.12);
+      --shadow-glow: 0 0 30px hsla(var(--primary-hue), 100%, 60%, 0.2);
+    }
+
+    /* Respect User Motion Preferences */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    /* ==========================================================================
+       2. MODERN CSS RESET & GLOBAL BASICS
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      background-color: var(--color-bg);
+      color: var(--color-text-main);
+      font-family: var(--font-family-base);
+      font-size: var(--font-size-base);
+      line-height: 1.65;
+      overflow-x: hidden;
+      transition: background-color var(--transition-base), color var(--transition-base);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Keyboard Visible Focus Rings */
+    :focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+      border-radius: var(--radius-sm);
+    }
+
+    img, svg, picture {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+      color: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      background: none;
+    }
+
+    ul, ol {
+      list-style: none;
+    }
+
+    /* Screen Reader Only Utility */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* Skip Navigation Link */
+    .skip-link {
+      position: fixed;
+      top: -100px;
+      left: 1rem;
+      z-index: 10000;
+      background: var(--color-primary);
+      color: #ffffff;
+      padding: 0.75rem 1.25rem;
+      font-weight: 700;
+      border-radius: var(--radius-md);
+      transition: top var(--transition-fast);
+      box-shadow: var(--shadow-lg);
+    }
+    .skip-link:focus {
+      top: 1rem;
+    }
+
+    /* Scroll Reading Indicator Bar */
+    .scroll-progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--color-primary), #38bdf8);
+      z-index: 9999;
+      transition: width 0.05s linear;
+    }
+
+    /* Ambient Background Glow Mesh */
+    .bg-ambient-mesh {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+    .bg-ambient-mesh::before {
+      content: '';
+      position: absolute;
+      top: -15vw;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 70vw;
+      height: 40vw;
+      min-width: 450px;
+      background: radial-gradient(circle, var(--color-primary-alpha) 0%, transparent 68%);
+      filter: blur(80px);
+      opacity: 0.6;
+    }
+    .bg-ambient-mesh::after {
+      content: '';
+      position: absolute;
+      top: 55vh;
+      right: -10vw;
+      width: 45vw;
+      height: 35vw;
+      background: radial-gradient(circle, hsla(180, 80%, 50%, 0.08) 0%, transparent 70%);
+      filter: blur(90px);
+    }
+
+    /* Container Standard */
+    .container {
+      width: 100%;
+      max-width: var(--container-max-width);
+      margin-inline: auto;
+      padding-inline: clamp(1rem, 3.5vw, 2.5rem);
+    }
+
+    /* Section Spacing */
+    .section-spacing {
+      padding-block: var(--space-2xl);
+    }
+
+    /* Section Headings */
+    .section-header {
+      margin-bottom: var(--space-xl);
+    }
+    .section-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: var(--font-size-xs);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-primary);
+      margin-bottom: var(--space-xs);
+    }
+    .section-title {
+      font-size: var(--font-size-2xl);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+    }
+    .section-desc {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-base);
+      max-width: 580px;
+      margin-top: 0.5rem;
+    }
+
+    /* ==========================================================================
+       3. HEADER & GLASSMORPHIC NAVBAR (Flexbox Architecture)
+       ========================================================================== */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      height: var(--header-height);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      background-color: var(--color-surface-glass);
+      border-bottom: 1px solid var(--color-border);
+      transition: background-color var(--transition-base), border-color var(--transition-base);
+    }
+
+    .nav-wrapper {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    /* Brand Logo / Monogram */
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 800;
+      font-size: var(--font-size-lg);
+      letter-spacing: -0.02em;
+    }
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--color-primary), #4338ca);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-family-mono);
+      font-size: 0.95rem;
+      font-weight: 800;
+      box-shadow: 0 4px 14px var(--color-primary-alpha);
+    }
+
+    /* Desktop Navigation Links */
+    .primary-nav {
+      display: none;
+    }
+    @media (min-width: 768px) {
+      .primary-nav {
+        display: block;
+      }
+    }
+
+    .nav-list {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .nav-link {
+      padding: 0.5rem 0.85rem;
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      color: var(--color-text-muted);
+      border-radius: var(--radius-sm);
+      transition: color var(--transition-fast), background-color var(--transition-fast);
+    }
+    .nav-link:hover {
+      color: var(--color-text-main);
+      background-color: var(--color-border);
+    }
+
+    /* Right Action Group: Theme Toggle & CTA */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    /* Theme Switcher Button */
+    .theme-toggle-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      background-color: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-fast);
+    }
+    .theme-toggle-btn:hover {
+      border-color: var(--color-border-hover);
+      transform: translateY(-1px);
+    }
+
+    /* Mobile Hamburger Menu Button */
+    .mobile-menu-btn {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      width: 40px;
+      height: 40px;
+      padding: 9px;
+      border-radius: var(--radius-md);
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+    }
+    .mobile-menu-btn span {
+      display: block;
+      width: 100%;
+      height: 2px;
+      background-color: var(--color-text-main);
+      border-radius: 2px;
+      transition: transform var(--transition-fast), opacity var(--transition-fast);
+    }
+    .mobile-menu-btn[aria-expanded="true"] span:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+    .mobile-menu-btn[aria-expanded="true"] span:nth-child(2) {
+      opacity: 0;
+    }
+    .mobile-menu-btn[aria-expanded="true"] span:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+    @media (min-width: 768px) {
+      .mobile-menu-btn {
+        display: none;
+      }
+    }
+
+    /* Mobile Drawer */
+    .mobile-drawer {
+      position: fixed;
+      top: var(--header-height);
+      left: 0;
+      right: 0;
+      background: var(--color-surface-glass);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border-bottom: 1px solid var(--color-border);
+      padding: 1.5rem;
+      transform: translateY(-110%);
+      transition: transform var(--transition-slow);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .mobile-drawer.active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-lg);
+    }
+    .mobile-drawer .nav-link {
+      font-size: 1.1rem;
+      padding: 0.75rem 1rem;
+    }
+
+    /* Primary CTA Button (Flexbox Micro-component) */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.25rem;
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      line-height: 1;
+      white-space: nowrap;
+      transition: all var(--transition-fast);
+    }
+    .btn-primary {
+      background: var(--color-primary);
+      color: #ffffff;
+      box-shadow: 0 4px 14px var(--color-primary-alpha);
+    }
+    .btn-primary:hover {
+      background: var(--color-primary-hover);
+      box-shadow: var(--shadow-glow);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-main);
+    }
+    .btn-secondary:hover {
+      background: var(--color-surface-3);
+      border-color: var(--color-border-hover);
+      transform: translateY(-1px);
+    }
+    .btn-sm {
+      padding: 0.4rem 0.8rem;
+      font-size: var(--font-size-xs);
+    }
+
+    /* ==========================================================================
+       4. HERO SECTION (Fluid Clamp Typography & Ambient Flex)
+       ========================================================================== */
+    .hero-section {
+      padding-top: clamp(2rem, 5vw, 4.5rem);
+      padding-bottom: clamp(3rem, 6vw, 5rem);
+    }
+
+    .hero-content {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      max-width: 860px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: var(--radius-full);
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-md);
+    }
+    .status-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--color-accent-teal);
+      box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.7);
+      animation: pulse-ring 2s infinite cubic-bezier(0.66, 0, 0, 1);
+    }
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(20, 184, 166, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); }
+    }
+
+    .hero-title {
+      font-size: var(--font-size-hero);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+      margin-bottom: var(--space-md);
+    }
+    .hero-title .gradient-text {
+      background: linear-gradient(135deg, var(--color-text-main) 30%, var(--color-primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-lead {
+      font-size: var(--font-size-lg);
+      color: var(--color-text-muted);
+      line-height: 1.6;
+      max-width: 640px;
+      margin-bottom: var(--space-lg);
+    }
+
+    .hero-cta-cluster {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: var(--space-xl);
+    }
+
+    /* Stats Strip (Responsive Flexbox Grid) */
+    .hero-stats {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      padding-top: var(--space-lg);
+      border-top: 1px solid var(--color-border);
+    }
+    @media (min-width: 640px) {
+      .hero-stats {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .stat-number {
+      font-size: var(--font-size-2xl);
+      font-weight: 800;
+      color: var(--color-text-main);
+      font-family: var(--font-family-mono);
+      line-height: 1.2;
+    }
+    .stat-label {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ==========================================================================
+       5. WORK & BENTO GRID SECTION (CSS Grid 2D Architecture)
+       ========================================================================== */
+    .bento-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    /* Tablet breakpoint: 2 columns */
+    @media (min-width: 768px) {
+      .bento-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* Desktop Breakpoint: 3 asymmetric columns with named areas */
+    @media (min-width: 1024px) {
+      .bento-grid {
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-areas:
+          "feature1 feature1 feature2"
+          "feature3 feature4 feature4"
+          "feature5 feature6 feature6";
+      }
+      .bento-item:nth-child(1) { grid-area: feature1; }
+      .bento-item:nth-child(2) { grid-area: feature2; }
+      .bento-item:nth-child(3) { grid-area: feature3; }
+      .bento-item:nth-child(4) { grid-area: feature4; }
+      .bento-item:nth-child(5) { grid-area: feature5; }
+      .bento-item:nth-child(6) { grid-area: feature6; }
+    }
+
+    /* Bento Card Base & Glassmorphic Elevation */
+    .bento-item {
+      background-color: var(--color-surface-1);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: clamp(1.25rem, 2.5vw, 2rem);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: transform var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
+    }
+    .bento-item:hover {
+      transform: translateY(-3px);
+      border-color: var(--color-border-hover);
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* Subtle Card Gradient Accent */
+    .bento-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+    }
+    .bento-item:hover::before {
+      opacity: 1;
+    }
+
+    .bento-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .bento-tag {
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      padding: 0.25rem 0.6rem;
+      border-radius: var(--radius-full);
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-muted);
+    }
+
+    .bento-title {
+      font-size: var(--font-size-xl);
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 0.5rem;
+    }
+    .bento-desc {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-sm);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    .tech-stack-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1.5rem;
+    }
+    .tech-pill {
+      font-family: var(--font-family-mono);
+      font-size: 0.72rem;
+      background: var(--color-surface-2);
+      color: var(--color-text-muted);
+      padding: 0.2rem 0.5rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+    }
+
+    .bento-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 1rem;
+      border-top: 1px solid var(--color-border);
+    }
+    .link-group {
+      display: flex;
+      gap: 0.75rem;
+    }
+    .text-link {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--color-primary);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .text-link:hover {
+      text-decoration: underline;
+    }
+
+    /* ==========================================================================
+       6. INTERACTIVE CSS ARCHITECTURE PLAYGROUND (Token Tweaker)
+       ========================================================================== */
+    .playground-box {
+      background: var(--color-surface-1);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: clamp(1.5rem, 3vw, 2.5rem);
+      box-shadow: var(--shadow-md);
+      position: relative;
+    }
+
+    .playground-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    @media (min-width: 900px) {
+      .playground-grid {
+        grid-template-columns: 1.1fr 1fr;
+        align-items: center;
+      }
+    }
+
+    .control-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .control-label-wrap {
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+    }
+    .control-val {
+      font-family: var(--font-family-mono);
+      color: var(--color-primary);
+    }
+
+    /* Styled Range Sliders */
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: var(--color-surface-3);
+      border-radius: var(--radius-full);
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      cursor: pointer;
+      box-shadow: 0 0 8px var(--color-primary-alpha);
+      transition: transform var(--transition-fast);
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    /* Live Preview Target Container */
+    .live-preview-window {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .preview-badge {
+      align-self: flex-start;
+      font-size: var(--font-size-xs);
+      font-weight: 700;
+      color: var(--color-primary);
+      padding: 0.25rem 0.5rem;
+      border-radius: var(--radius-sm);
+      background: var(--color-primary-alpha);
+    }
+    .preview-box-sample {
+      background: var(--color-surface-glass);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* ==========================================================================
+       7. ABOUT & INTERACTIVE SKILLS (CSS Meter Bars & Flex Badges)
+       ========================================================================== */
+    .about-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+    @media (min-width: 992px) {
+      .about-layout {
+        grid-template-columns: 1.1fr 1fr;
+      }
+    }
+
+    .bio-text {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-base);
+      line-height: 1.75;
+      margin-bottom: 1.25rem;
+    }
+
+    .skill-card {
+      background: var(--color-surface-1);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: clamp(1.25rem, 2vw, 2rem);
+    }
+
+    .filter-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .tab-btn {
+      padding: 0.35rem 0.85rem;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      border-radius: var(--radius-full);
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-muted);
+      transition: all var(--transition-fast);
+    }
+    .tab-btn.active, .tab-btn:hover {
+      background: var(--color-primary);
+      color: #ffffff;
+      border-color: var(--color-primary);
+    }
+
+    .skills-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 1.15rem;
+    }
+    .skill-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .skill-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+    }
+    .meter-track {
+      height: 7px;
+      width: 100%;
+      background: var(--color-surface-3);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+    .meter-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--color-primary), #38bdf8);
+      border-radius: var(--radius-full);
+      transform-origin: left;
+      transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    /* ==========================================================================
+       8. CONTACT SECTION (Accessible Floating-Label Form)
+       ========================================================================== */
+    .contact-card {
+      background: var(--color-surface-1);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: clamp(1.5rem, 4vw, 3rem);
+      max-width: 720px;
+      margin-inline: auto;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .form-group {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Modern Floating Label Pattern */
+    .form-input, .form-textarea {
+      width: 100%;
+      padding: 1.1rem 1rem 0.4rem 1rem;
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      color: var(--color-text-main);
+      font-size: var(--font-size-base);
+      outline: none;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    }
+    .form-input:focus, .form-textarea:focus {
+      border-color: var(--color-border-focus);
+      box-shadow: 0 0 0 3px var(--color-primary-alpha);
+    }
+
+    .form-label {
+      position: absolute;
+      top: 0.85rem;
+      left: 1rem;
+      color: var(--color-text-faint);
+      font-size: var(--font-size-base);
+      pointer-events: none;
+      transition: all var(--transition-fast);
+      transform-origin: left top;
+    }
+
+    /* Float label when focused or contains value */
+    .form-input:focus ~ .form-label,
+    .form-input:not(:placeholder-shown) ~ .form-label,
+    .form-textarea:focus ~ .form-label,
+    .form-textarea:not(:placeholder-shown) ~ .form-label {
+      transform: translateY(-0.55rem) scale(0.75);
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+
+    .form-hint {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-faint);
+      margin-top: 0.35rem;
+    }
+
+    .form-status {
+      display: none;
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+      margin-bottom: 1.5rem;
+    }
+    .form-status.success {
+      display: block;
+      background: rgba(20, 184, 166, 0.15);
+      color: #2dd4bf;
+      border: 1px solid #14b8a6;
+    }
+    .form-status.error {
+      display: block;
+      background: rgba(244, 63, 94, 0.15);
+      color: #fb7185;
+      border: 1px solid #f43f5e;
+    }
+
+    /* ==========================================================================
+       9. MODAL PREVIEW COMPONENT
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10001;
+      padding: 1.5rem;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--color-surface-1);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 620px;
+      padding: 2rem;
+      position: relative;
+      box-shadow: var(--shadow-lg);
+      animation: modal-enter 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modal-enter {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-close-btn {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      color: var(--color-text-muted);
+    }
+    .modal-close-btn:hover {
+      color: var(--color-text-main);
+      background: var(--color-surface-2);
+    }
+
+    /* ==========================================================================
+       10. FOOTER & BACK-TO-TOP (Semantic Grid & Flex Layout)
+       ========================================================================== */
+    .site-footer {
+      margin-top: auto;
+      border-top: 1px solid var(--color-border);
+      background: var(--color-bg-alt);
+      padding-block: var(--space-xl);
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1.5rem;
+    }
+    @media (min-width: 768px) {
+      .footer-inner {
+        flex-direction: row;
+        justify-content: space-between;
+        text-align: left;
+      }
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.25rem;
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+    }
+    .footer-links a:hover {
+      color: var(--color-text-main);
+    }
+
+    .back-to-top-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--color-text-muted);
+      padding: 0.4rem 0.8rem;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--color-border);
+      background: var(--color-surface-2);
+      transition: all var(--transition-fast);
+    }
+    .back-to-top-btn:hover {
+      color: var(--color-text-main);
+      border-color: var(--color-border-hover);
+    }
+  </style>
+</head>
+<body id="top">
+
+  <!-- Accessible Skip Link -->
+  <a href="#main-content" class="skip-link">Skip directly to main content</a>
+
+  <!-- Scroll Progress Indicator -->
+  <div id="scrollProgressBar" class="scroll-progress-bar" aria-hidden="true"></div>
+
+  <!-- Ambient CSS Glow Mesh -->
+  <div class="bg-ambient-mesh" aria-hidden="true"></div>
+
+  <!-- STICKY SITE HEADER -->
+  <header class="site-header" role="banner">
+    <div class="container nav-wrapper">
+      
+      <!-- Brand Identity -->
+      <a href="#top" class="brand-logo" aria-label="Alex Mercer Home">
+        <div class="brand-icon" aria-hidden="true">AM</div>
+        <span>Alex Mercer</span>
+      </a>
+
+      <!-- Desktop Navigation Menu -->
+      <nav class="primary-nav" role="navigation" aria-label="Main Navigation">
+        <ul class="nav-list">
+          <li><a href="#work" class="nav-link">Work</a></li>
+          <li><a href="#playground" class="nav-link">CSS Inspector</a></li>
+          <li><a href="#about" class="nav-link">About &amp; Matrix</a></li>
+          <li><a href="#contact" class="nav-link">Contact</a></li>
+        </ul>
+      </nav>
+
+      <!-- Action Items: Theme Switcher & Menu Button -->
+      <div class="header-actions">
+        <!-- Interactive Theme Switcher -->
+        <button 
+          id="themeToggleBtn" 
+          class="theme-toggle-btn" 
+          type="button" 
+          aria-label="Toggle dark and light color theme" 
+          title="Toggle color theme">
+          <svg id="themeIconSun" class="theme-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <svg id="themeIconMoon" class="theme-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none;" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+
+        <a href="#contact" class="btn btn-primary" style="display: none;">Let's Talk</a>
+
+        <!-- Mobile Menu Toggle -->
+        <button 
+          id="mobileMenuBtn" 
+          class="mobile-menu-btn" 
+          type="button" 
+          aria-expanded="false" 
+          aria-controls="mobileDrawer" 
+          aria-label="Open mobile navigation menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Mobile Drawer Menu -->
+  <div id="mobileDrawer" class="mobile-drawer" role="dialog" aria-modal="true" aria-label="Mobile Navigation">
+    <a href="#work" class="nav-link mobile-nav-link">Selected Work</a>
+    <a href="#playground" class="nav-link mobile-nav-link">CSS Inspector &amp; Tokens</a>
+    <a href="#about" class="nav-link mobile-nav-link">About &amp; Matrix</a>
+    <a href="#contact" class="nav-link mobile-nav-link">Contact</a>
+  </div>
+
+  <!-- MAIN LANDMARK -->
+  <main id="main-content">
+
+    <!-- HERO SECTION -->
+    <section class="hero-section container" aria-labelledby="hero-title">
+      <div class="hero-content">
+        
+        <div class="status-badge">
+          <span class="status-pulse" aria-hidden="true"></span>
+          <span>Available for Staff Engineering &amp; Architecture Consulting</span>
+        </div>
+
+        <h1 id="hero-title" class="hero-title">
+          Architecting systems with <br>
+          <span class="gradient-text">CSS3 precision &amp; modern craft.</span>
+        </h1>
+
+        <p class="hero-lead">
+          Design Technologist specializing in CSS Grid layouts, fluid typography, high-performance web animations, and accessible component architectures.
+        </p>
+
+        <div class="hero-cta-cluster">
+          <a href="#work" class="btn btn-primary">
+            <span>Explore Bento Showcase</span>
+            <span aria-hidden="true">&darr;</span>
+          </a>
+          <a href="#playground" class="btn btn-secondary">
+            <span>Inspect CSS Architecture</span>
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+        </div>
+
+        <!-- Metric Counters Strip -->
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-number">100/100</span>
+            <span class="stat-label">Lighthouse A11y</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">&lt; 12ms</span>
+            <span class="stat-label">Frame Budget</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">9+ Yrs</span>
+            <span class="stat-label">Frontend Mastery</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">WCAG AAA</span>
+            <span class="stat-label">Contrast Certified</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION: WORK / PROJECTS (CSS GRID BENTO BOX) -->
+    <section id="work" class="section-spacing container" aria-labelledby="work-title">
+      <div class="section-header">
+        <div class="section-eyebrow">
+          <span aria-hidden="true">&#9670;</span>
+          <span>Two-Dimensional CSS Grid Layout</span>
+        </div>
+        <h2 id="work-title" class="section-title">Featured Projects &amp; Explorations</h2>
+        <p class="section-desc">
+          Structured using modern CSS Grid areas with responsive sub-alignments and glassmorphic micro-interactions.
+        </p>
+      </div>
+
+      <!-- Bento Grid (3-columns on desktop with spans) -->
+      <div class="bento-grid">
+        
+        <!-- Bento Item 1: Span 2 cols -->
+        <article class="bento-item">
+          <div>
+            <div class="bento-top">
+              <span class="bento-tag">Design System &bull; CSS Architecture</span>
+              <span class="tech-pill">2026 Release</span>
+            </div>
+            <h3 class="bento-title">Prism UI Component Kit</h3>
+            <p class="bento-desc">
+              A headless, fully accessible design system featuring modern CSS token hierarchies, dynamic CSS Custom Properties for theming, and zero runtime overhead.
+            </p>
+            <div class="tech-stack-row">
+              <span class="tech-pill">CSS Subgrid</span>
+              <span class="tech-pill">Custom Properties</span>
+              <span class="tech-pill">TypeScript</span>
+              <span class="tech-pill">Storybook</span>
+            </div>
+          </div>
+          <div class="bento-footer">
+            <button class="btn btn-secondary btn-sm" type="button" onclick="openProjectModal('Prism UI Kit', 'Detailed breakdown of tokens and subgrid layout mechanisms.')">
+              View Specs
+            </button>
+            <div class="link-group">
+              <a href="#work" class="text-link" aria-label="Source code for Prism UI">Code &rarr;</a>
+              <a href="#work" class="text-link" aria-label="Live preview for Prism UI">Live Demo &nearr;</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Bento Item 2: Standard 1 col -->
+        <article class="bento-item">
+          <div>
+            <div class="bento-top">
+              <span class="bento-tag">FinTech Performance</span>
+            </div>
+            <h3 class="bento-title">Hyperion Ledger</h3>
+            <p class="bento-desc">
+              Real-time multi-asset financial dashboard rendering high-density currency tables with accessible screen reader summaries.
+            </p>
+            <div class="tech-stack-row">
+              <span class="tech-pill">Container Queries</span>
+              <span class="tech-pill">WebSockets</span>
+              <span class="tech-pill">WCAG 2.2</span>
+            </div>
+          </div>
+          <div class="bento-footer">
+            <button class="btn btn-secondary btn-sm" type="button" onclick="openProjectModal('Hyperion Ledger', 'Interactive financial data grid utilizing virtualized rendering.')">
+              View Specs
+            </button>
+            <a href="#work" class="text-link">Live Demo &nearr;</a>
+          </div>
+        </article>
+
+        <!-- Bento Item 3: Standard 1 col -->
+        <article class="bento-item">
+          <div>
+            <div class="bento-top">
+              <span class="bento-tag">Creative Web Audio</span>
+            </div>
+            <h3 class="bento-title">EchoSynth Audio Visualizer</h3>
+            <p class="bento-desc">
+              WebAudio node graph paired with CSS 3D transforms that react in real-time to frequency bands and bpm transitions.
+            </p>
+            <div class="tech-stack-row">
+              <span class="tech-pill">CSS 3D Transforms</span>
+              <span class="tech-pill">WebAudio</span>
+            </div>
+          </div>
+          <div class="bento-footer">
+            <button class="btn btn-secondary btn-sm" type="button" onclick="openProjectModal('EchoSynth Visualizer', 'Audio-reactive transforms with zero frame-drops on 120Hz displays.')">
+              View Specs
+            </button>
+            <a href="#work" class="text-link">Inspect &rarr;</a>
+          </div>
+        </article>
+
+        <!-- Bento Item 4: Span 2 cols -->
+        <article class="bento-item">
+          <div>
+            <div class="bento-top">
+              <span class="bento-tag">IoT Infrastructure</span>
+              <span class="tech-pill">AAA Accessibility</span>
+            </div>
+            <h3 class="bento-title">Helios Smart City Command</h3>
+            <p class="bento-desc">
+              Energy grid optimization tool managing solar panel telemetry across 4,000 smart building nodes with extreme high-contrast mode toggles and audible accessibility alerts.
+            </p>
+            <div class="tech-stack-row">
+              <span class="tech-pill">CSS Grid Areas</span>
+              <span class="tech-pill">High Contrast APCA</span>
+              <span class="tech-pill">SVG Mapping</span>
+            </div>
+          </div>
+          <div class="bento-footer">
+            <button class="btn btn-secondary btn-sm" type="button" onclick="openProjectModal('Helios Smart City', 'Real-world telemetry console built for industrial touch displays and keyboard accessibility.')">
+              View Specs
+            </button>
+            <div class="link-group">
+              <a href="#work" class="text-link">Case Study &rarr;</a>
+              <a href="#work" class="text-link">Live Demo &nearr;</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Bento Item 5: Standard 1 col -->
+        <article class="bento-item">
+          <div>
+            <div class="bento-top">
+              <span class="bento-tag">CSS Experiment</span>
+            </div>
+            <h3 class="bento-title">Subgrid Sandbox</h3>
+            <p class="bento-desc">
+              An open-source interactive documentation explaining parent-to-child nested grid track alignment without JS layout hacks.
+            </p>
+            <div class="tech-stack-row">
+              <span class="tech-pill">CSS Grid Level 2</span>
+              <span class="tech-pill">CSS Variables</span>
+            </div>
+          </div>
+          <div class="bento-footer">
+            <button class="btn btn-secondary btn-sm" type="button" onclick="openProjectModal('Subgrid Sandbox', 'Interactive playground exploring CSS subgrid track matching.')">
+              View Specs
+            </button>
+            <a href="#work" class="text-link">Read Guide &rarr;</a>
+          </div>
+        </article>
+
+        <!-- Bento Item 6: Span 2 cols -->
+        <article class="bento-item">
+          <div>
+            <div class="bento-top">
+              <span class="bento-tag">Enterprise SaaS</span>
+              <span class="tech-pill">Global CDN</span>
+            </div>
+            <h3 class="bento-title">Veloce Edge Deployment Cloud</h3>
+            <p class="bento-desc">
+              Edge deployment dashboard providing instant latency previews, serverless execution traces, and zero-layout-shift real-time graphs.
+            </p>
+            <div class="tech-stack-row">
+              <span class="tech-pill">CSS Container Queries</span>
+              <span class="tech-pill">Fluid Typography</span>
+              <span class="tech-pill">Responsive Flex</span>
+            </div>
+          </div>
+          <div class="bento-footer">
+            <button class="btn btn-secondary btn-sm" type="button" onclick="openProjectModal('Veloce Edge', 'Comprehensive metrics on rendering speeds and responsive typography scales.')">
+              View Specs
+            </button>
+            <div class="link-group">
+              <a href="#work" class="text-link">Overview &rarr;</a>
+              <a href="#work" class="text-link">Launch App &nearr;</a>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- SECTION: INTERACTIVE CSS ARCHITECTURE INSPECTOR / TOKEN PLAYGROUND -->
+    <section id="playground" class="section-spacing container" aria-labelledby="playground-title">
+      <div class="section-header">
+        <div class="section-eyebrow">
+          <span aria-hidden="true">&#9881;</span>
+          <span>Live CSS Variable Inspector</span>
+        </div>
+        <h2 id="playground-title" class="section-title">Dynamic Design Token Playground</h2>
+        <p class="section-desc">
+          Test the flexibility of this site's CSS architecture. Move the sliders to mutate runtime CSS variables directly on the page root.
+        </p>
+      </div>
+
+      <div class="playground-box">
+        <div class="playground-grid">
+          
+          <!-- Slider Controls -->
+          <div class="control-panel">
+            
+            <!-- Control 1: Primary Accent Hue -->
+            <div class="control-row">
+              <div class="control-label-wrap">
+                <label for="sliderHue">Primary Accent Hue (HSL)</label>
+                <span id="valHue" class="control-val">250&deg;</span>
+              </div>
+              <input type="range" id="sliderHue" min="0" max="360" value="250" aria-label="Adjust primary accent hue in degrees">
+            </div>
+
+            <!-- Control 2: Glassmorphic Backdrop Blur -->
+            <div class="control-row">
+              <div class="control-label-wrap">
+                <label for="sliderBlur">Backdrop Filter Blur</label>
+                <span id="valBlur" class="control-val">14px</span>
+              </div>
+              <input type="range" id="sliderBlur" min="0" max="30" value="14" aria-label="Adjust backdrop filter blur intensity in pixels">
+            </div>
+
+            <!-- Control 3: Border Radius Scale -->
+            <div class="control-row">
+              <div class="control-label-wrap">
+                <label for="sliderRadius">Base Border Radius</label>
+                <span id="valRadius" class="control-val">12px</span>
+              </div>
+              <input type="range" id="sliderRadius" min="0" max="28" value="12" aria-label="Adjust border radius in pixels">
+            </div>
+
+            <!-- Control 4: Layout Density / Spacing -->
+            <div class="control-row">
+              <div class="control-label-wrap">
+                <label for="sliderSpacing">Layout Spacing Unit</label>
+                <span id="valSpacing" class="control-val">1.0rem</span>
+              </div>
+              <input type="range" id="sliderSpacing" min="0.75" max="1.35" step="0.05" value="1.0" aria-label="Adjust base spacing unit in rem">
+            </div>
+
+            <div style="margin-top: 0.5rem;">
+              <button id="resetTokensBtn" type="button" class="btn btn-secondary btn-sm">
+                Reset Tokens to Default
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Live Reactive Inspection Preview -->
+          <div class="live-preview-window">
+            <span class="preview-badge">Live Token Target</span>
+            <div class="preview-box-sample">
+              <h4 style="font-weight: 700; margin-bottom: 0.5rem;">Computed CSS Tokens</h4>
+              <p style="font-size: var(--font-size-sm); color: var(--color-text-muted); margin-bottom: 1rem;">
+                Changes here dynamically reflect across the navigation bar, buttons, and card elevations.
+              </p>
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <button class="btn btn-primary btn-sm" type="button">Primary Element</button>
+                <button class="btn btn-secondary btn-sm" type="button">Secondary Surface</button>
+              </div>
+            </div>
+            <div style="font-family: var(--font-family-mono); font-size: 0.75rem; color: var(--color-text-faint);">
+              <code>:root { --primary-hue: <span id="codeHue">250</span>; --glass-blur: <span id="codeBlur">14px</span>; }</code>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: ABOUT & SKILLS (Interactive Category Filters & CSS Meters) -->
+    <section id="about" class="section-spacing container" aria-labelledby="about-title">
+      <div class="section-header">
+        <div class="section-eyebrow">
+          <span aria-hidden="true">&#9632;</span>
+          <span>Architectural Philosophy</span>
+        </div>
+        <h2 id="about-title" class="section-title">Engineering Standards &amp; Matrix</h2>
+      </div>
+
+      <div class="about-layout">
+        
+        <!-- Bio and Technical Philosophy -->
+        <div>
+          <p class="bio-text">
+            I approach frontend engineering from a craft-centric standpoint: code should be as mathematically clean as it is visually refined. By leaning into native browser capabilities like CSS Grid, custom properties, and subgrid, we build interfaces that outlast framework churn.
+          </p>
+          <p class="bio-text">
+            My work focuses heavily on eliminating layout shift, optimizing critical rendering paths, and ensuring that keyboard accessibility and WCAG contrast are treated as architectural constants.
+          </p>
+
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem;">
+            <div style="padding: 1rem; background: var(--color-surface-1); border: 1px solid var(--color-border); border-radius: var(--radius-md); flex: 1; min-width: 140px;">
+              <div style="font-weight: 700; font-size: var(--font-size-lg);">0.00</div>
+              <div style="font-size: var(--font-size-xs); color: var(--color-text-muted);">Cumulative Layout Shift</div>
+            </div>
+            <div style="padding: 1rem; background: var(--color-surface-1); border: 1px solid var(--color-border); border-radius: var(--radius-md); flex: 1; min-width: 140px;">
+              <div style="font-weight: 700; font-size: var(--font-size-lg);">60 FPS</div>
+              <div style="font-size: var(--font-size-xs); color: var(--color-text-muted);">Composited Animations</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filterable Skills Matrix -->
+        <div class="skill-card">
+          <h3 style="font-size: var(--font-size-lg); font-weight: 700; margin-bottom: 1rem;">Core Competencies</h3>
+          
+          <!-- Category Filter Tabs -->
+          <div class="filter-tabs" role="tablist" aria-label="Skill categories">
+            <button class="tab-btn active" role="tab" aria-selected="true" data-cat="all" onclick="filterSkills('all', this)">All Specs</button>
+            <button class="tab-btn" role="tab" aria-selected="false" data-cat="layout" onclick="filterSkills('layout', this)">Layout &amp; CSS</button>
+            <button class="tab-btn" role="tab" aria-selected="false" data-cat="perf" onclick="filterSkills('perf', this)">Perf &amp; A11y</button>
+            <button class="tab-btn" role="tab" aria-selected="false" data-cat="eng" onclick="filterSkills('eng', this)">Engineering</button>
+          </div>
+
+          <!-- Dynamic Skill Rows with CSS Meter Bars -->
+          <div class="skills-bars" id="skillsContainer">
+            
+            <div class="skill-row" data-category="layout">
+              <div class="skill-meta">
+                <span>CSS Grid &amp; Asymmetric Bento Systems</span>
+                <span class="control-val">98%</span>
+              </div>
+              <div class="meter-track" role="progressbar" aria-valuenow="98" aria-valuemin="0" aria-valuemax="100">
+                <div class="meter-fill" style="width: 98%;"></div>
+              </div>
+            </div>
+
+            <div class="skill-row" data-category="layout">
+              <div class="skill-meta">
+                <span>CSS Custom Properties &amp; Token Architecture</span>
+                <span class="control-val">95%</span>
+              </div>
+              <div class="meter-track" role="progressbar" aria-valuenow="95" aria-valuemin="0" aria-valuemax="100">
+                <div class="meter-fill" style="width: 95%;"></div>
+              </div>
+            </div>
+
+            <div class="skill-row" data-category="perf">
+              <div class="skill-meta">
+                <span>WCAG 2.2 AA/AAA Accessibility Compliance</span>
+                <span class="control-val">100%</span>
+              </div>
+              <div class="meter-track" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+                <div class="meter-fill" style="width: 100%;"></div>
+              </div>
+            </div>
+
+            <div class="skill-row" data-category="perf">
+              <div class="skill-meta">
+                <span>Core Web Vitals &amp; Composited Animation</span>
+                <span class="control-val">92%</span>
+              </div>
+              <div class="meter-track" role="progressbar" aria-valuenow="92" aria-valuemin="0" aria-valuemax="100">
+                <div class="meter-fill" style="width: 92%;"></div>
+              </div>
+            </div>
+
+            <div class="skill-row" data-category="eng">
+              <div class="skill-meta">
+                <span>Component Systems (React, Web Components, Vue)</span>
+                <span class="control-val">90%</span>
+              </div>
+              <div class="meter-track" role="progressbar" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100">
+                <div class="meter-fill" style="width: 90%;"></div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION: CONTACT (Accessible Floating Labels) -->
+    <section id="contact" class="section-spacing container" aria-labelledby="contact-title">
+      <div class="contact-card">
+        
+        <div style="text-align: center; margin-bottom: 2rem;">
+          <div class="section-eyebrow" style="justify-content: center;">
+            <span aria-hidden="true">&bull;</span>
+            <span>Initiate Collaboration</span>
+          </div>
+          <h2 id="contact-title" class="section-title">Let's Build Something Exceptional</h2>
+          <p class="section-desc" style="margin-inline: auto;">
+            Inquiries regarding design systems, staff frontend consulting, or architectural reviews are always welcome.
+          </p>
+        </div>
+
+        <!-- Live feedback box for screen reader announcements -->
+        <div id="contactStatusBox" class="form-status" role="status" aria-live="polite"></div>
+
+        <form id="portfolioContactForm" novalidate>
+          
+          <!-- Full Name Field with Floating Label -->
+          <div class="form-group">
+            <input 
+              type="text" 
+              id="senderName" 
+              class="form-input" 
+              placeholder=" " 
+              required 
+              autocomplete="name"
+              aria-describedby="nameHint"
+            >
+            <label for="senderName" class="form-label">Full Name *</label>
+            <div id="nameHint" class="form-hint">Please enter your given or organization name.</div>
+          </div>
+
+          <!-- Email Address Field with Floating Label -->
+          <div class="form-group">
+            <input 
+              type="email" 
+              id="senderEmail" 
+              class="form-input" 
+              placeholder=" " 
+              required 
+              autocomplete="email"
+              aria-describedby="emailHint"
+            >
+            <label for="senderEmail" class="form-label">Email Address *</label>
+            <div id="emailHint" class="form-hint">A valid email address where I can reply.</div>
+          </div>
+
+          <!-- Project Brief Textarea with Floating Label -->
+          <div class="form-group">
+            <textarea 
+              id="projectBrief" 
+              class="form-textarea" 
+              rows="4" 
+              placeholder=" " 
+              required
+              aria-describedby="briefHint"
+            ></textarea>
+            <label for="projectBrief" class="form-label">Project Scope / Message *</label>
+            <div id="briefHint" class="form-hint">Provide details regarding goals, timelines, or specifications.</div>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-primary" style="width: 100%;">
+            <span>Send Message</span>
+            <span aria-hidden="true">&rarr;</span>
+          </button>
+
+        </form>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL PREVIEW DIALOG -->
+  <div id="projectModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-box">
+      <button class="modal-close-btn" type="button" onclick="closeProjectModal()" aria-label="Close specifications dialog">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <div class="bento-tag" style="margin-bottom: 0.75rem;">Technical Specification</div>
+      <h3 id="modalTitle" style="font-size: var(--font-size-xl); font-weight: 800; margin-bottom: 0.75rem;">Project Title</h3>
+      <p id="modalDesc" style="color: var(--color-text-muted); margin-bottom: 1.5rem; font-size: var(--font-size-sm); line-height: 1.6;">
+        Project description goes here.
+      </p>
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button class="btn btn-secondary btn-sm" type="button" onclick="closeProjectModal()">Close Dialog</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SITE FOOTER -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container footer-inner">
+      
+      <div>
+        <div style="font-weight: 700; margin-bottom: 0.25rem;">Alex Mercer &bull; Design Technologist</div>
+        <div style="font-size: var(--font-size-xs); color: var(--color-text-faint);">
+          Built with semantic HTML5, pure CSS3 architecture &amp; dynamic variables.
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub &nearr;</a>
+        <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">LinkedIn &nearr;</a>
+        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">Twitter &nearr;</a>
+      </div>
+
+      <div>
+        <a href="#top" class="back-to-top-btn" aria-label="Scroll back to the top of the page">
+          <span aria-hidden="true">&uarr;</span>
+          <span>Back to Top</span>
+        </a>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- SCRIPT: THEME ENGINE, LIVE CSS INSPECTOR & ACCESSIBLE BEHAVIORS -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      
+      /* ====================================================================
+         1. THEME SWITCHER (Dark/Light with System Detection & LocalStorage)
+         ==================================================================== */
+      const themeToggleBtn = document.getElementById('themeToggleBtn');
+      const themeIconSun = document.getElementById('themeIconSun');
+      const themeIconMoon = document.getElementById('themeIconMoon');
+      const htmlElem = document.documentElement;
+
+      // Determine initial theme: localStorage > system preference > default dark
+      const savedTheme = localStorage.getItem('portfolio-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initialTheme = savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light');
+
+      setTheme(initialTheme);
+
+      function setTheme(theme) {
+        htmlElem.setAttribute('data-theme', theme);
+        localStorage.setItem('portfolio-theme', theme);
+
+        if (theme === 'dark') {
+          themeIconSun.style.display = 'block';
+          themeIconMoon.style.display = 'none';
+        } else {
+          themeIconSun.style.display = 'none';
+          themeIconMoon.style.display = 'block';
+        }
+      }
+
+      themeToggleBtn.addEventListener('click', () => {
+        const currentTheme = htmlElem.getAttribute('data-theme') || 'dark';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+      });
+
+      /* ====================================================================
+         2. SCROLL PROGRESS BAR
+         ==================================================================== */
+      const progressBar = document.getElementById('scrollProgressBar');
+      window.addEventListener('scroll', () => {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+        progressBar.style.width = `${progress}%`;
+      }, { passive: true });
+
+      /* ====================================================================
+         3. MOBILE NAVIGATION DRAWER
+         ==================================================================== */
+      const mobileBtn = document.getElementById('mobileMenuBtn');
+      const mobileDrawer = document.getElementById('mobileDrawer');
+      const mobileLinks = document.querySelectorAll('.mobile-nav-link');
+
+      function toggleMobileMenu(open) {
+        const isOpen = open !== undefined ? open : !mobileDrawer.classList.contains('active');
+        mobileDrawer.classList.toggle('active', isOpen);
+        mobileBtn.setAttribute('aria-expanded', String(isOpen));
+      }
+
+      mobileBtn.addEventListener('click', () => toggleMobileMenu());
+      mobileLinks.forEach(link => link.addEventListener('click', () => toggleMobileMenu(false)));
+
+      /* ====================================================================
+         4. LIVE CSS ARCHITECTURE INSPECTOR / TOKEN CONTROLS
+         ==================================================================== */
+      const sliderHue = document.getElementById('sliderHue');
+      const sliderBlur = document.getElementById('sliderBlur');
+      const sliderRadius = document.getElementById('sliderRadius');
+      const sliderSpacing = document.getElementById('sliderSpacing');
+      const resetTokensBtn = document.getElementById('resetTokensBtn');
+
+      const valHue = document.getElementById('valHue');
+      const valBlur = document.getElementById('valBlur');
+      const valRadius = document.getElementById('valRadius');
+      const valSpacing = document.getElementById('valSpacing');
+
+      const codeHue = document.getElementById('codeHue');
+      const codeBlur = document.getElementById('codeBlur');
+
+      function updateTokens() {
+        const hue = sliderHue.value;
+        const blur = `${sliderBlur.value}px`;
+        const radius = `${sliderRadius.value}px`;
+        const spacing = `${sliderSpacing.value}rem`;
+
+        // Mutate document root custom properties live
+        htmlElem.style.setProperty('--primary-hue', hue);
+        htmlElem.style.setProperty('--glass-blur', blur);
+        htmlElem.style.setProperty('--radius-md', radius);
+        htmlElem.style.setProperty('--space-unit', spacing);
+
+        // Update labels
+        valHue.textContent = `${hue}°`;
+        valBlur.textContent = blur;
+        valRadius.textContent = radius;
+        valSpacing.textContent = spacing;
+
+        codeHue.textContent = hue;
+        codeBlur.textContent = blur;
+      }
+
+      sliderHue.addEventListener('input', updateTokens);
+      sliderBlur.addEventListener('input', updateTokens);
+      sliderRadius.addEventListener('input', updateTokens);
+      sliderSpacing.addEventListener('input', updateTokens);
+
+      resetTokensBtn.addEventListener('click', () => {
+        sliderHue.value = 250;
+        sliderBlur.value = 14;
+        sliderRadius.value = 12;
+        sliderSpacing.value = 1.0;
+        updateTokens();
+      });
+
+      /* ====================================================================
+         5. ACCESSIBLE SKILL CATEGORY FILTERING
+         ==================================================================== */
+      window.filterSkills = function(category, buttonElem) {
+        const tabs = document.querySelectorAll('.tab-btn');
+        tabs.forEach(tab => {
+          tab.classList.remove('active');
+          tab.setAttribute('aria-selected', 'false');
+        });
+        buttonElem.classList.add('active');
+        buttonElem.setAttribute('aria-selected', 'true');
+
+        const rows = document.querySelectorAll('.skill-row');
+        rows.forEach(row => {
+          const rowCat = row.getAttribute('data-category');
+          if (category === 'all' || rowCat === category) {
+            row.style.display = 'flex';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      };
+
+      /* ====================================================================
+         6. PROJECT MODAL SPECIFICATION DIALOG
+         ==================================================================== */
+      const modal = document.getElementById('projectModal');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalDesc = document.getElementById('modalDesc');
+
+      window.openProjectModal = function(title, description) {
+        modalTitle.textContent = title;
+        modalDesc.textContent = description;
+        modal.classList.add('active');
+        modal.querySelector('button.modal-close-btn').focus();
+        document.body.style.overflow = 'hidden';
+      };
+
+      window.closeProjectModal = function() {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      };
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeProjectModal();
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+          closeProjectModal();
+        }
+      });
+
+      /* ====================================================================
+         7. ACCESSIBLE CONTACT FORM VALIDATION
+         ==================================================================== */
+      const contactForm = document.getElementById('portfolioContactForm');
+      const statusBox = document.getElementById('contactStatusBox');
+
+      contactForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const nameInput = document.getElementById('senderName');
+        const emailInput = document.getElementById('senderEmail');
+        const briefInput = document.getElementById('projectBrief');
+
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!nameInput.value.trim() || !emailPattern.test(emailInput.value.trim()) || briefInput.value.trim().length < 10) {
+          statusBox.className = 'form-status error';
+          statusBox.textContent = 'Please complete all required fields with a valid email address and detailed project brief.';
+          return;
+        }
+
+        statusBox.className = 'form-status success';
+        statusBox.textContent = 'Thank you! Your project brief was dispatched successfully. I will follow up shortly.';
+        contactForm.reset();
+      });
+
+    });
+  </script>
+</body>
+</html>

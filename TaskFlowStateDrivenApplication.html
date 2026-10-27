@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow &mdash; State-Driven Task Management</title>
+  
+  <!-- Inter & JetBrains Mono Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN for modern utilities -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: ['class', '[data-theme="dark"]'],
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Tokens & Base Styles */
+    :root {
+      --bg-canvas: #090d16;
+      --bg-surface: #111827;
+      --bg-card: rgba(17, 24, 39, 0.75);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+    }
+
+    [data-theme="light"] {
+      --bg-canvas: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-card: rgba(255, 255, 255, 0.85);
+      --border-color: rgba(15, 23, 42, 0.08);
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    /* Glassmorphism Classes */
+    .glass-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border-color);
+    }
+
+    /* Completed Strike Animation */
+    .task-title.completed {
+      text-decoration: line-through;
+      color: var(--text-muted);
+      opacity: 0.65;
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(156, 163, 175, 0.2);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(156, 163, 175, 0.4);
+    }
+
+    /* Visible Accessible Focus Rings */
+    :focus-visible {
+      outline: 2px solid #6366f1;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body class="flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- Ambient Glow Effect -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10" aria-hidden="true">
+    <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-indigo-500/10 blur-[120px] rounded-full"></div>
+    <div class="absolute bottom-10 right-10 w-[400px] h-[300px] bg-teal-500/10 blur-[100px] rounded-full"></div>
+  </div>
+
+  <!-- APPLICATION TOP HEADER -->
+  <header class="sticky top-0 z-30 border-b glass-card">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      
+      <!-- Brand & Status -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center text-white shadow-lg shadow-brand-500/20 font-bold text-lg font-mono">
+          ✓
+        </div>
+        <div>
+          <h1 class="font-bold text-lg tracking-tight leading-none flex items-center gap-2">
+            TaskFlow
+            <span class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-brand-500/15 text-brand-500 font-semibold border border-brand-500/30">v1.2</span>
+          </h1>
+          <p class="text-xs text-gray-400 hidden sm:block mt-0.5">State Management &amp; DOM Persistence</p>
+        </div>
+      </div>
+
+      <!-- Quick Controls: Import/Export, Mark All, Theme Toggle -->
+      <div class="flex items-center gap-2">
+        
+        <!-- Batch Mark All Done -->
+        <button id="batchCompleteBtn" class="p-2 sm:px-3 sm:py-1.5 text-xs font-medium rounded-lg border border-gray-700/60 hover:bg-gray-800/40 transition flex items-center gap-1.5 text-gray-300" title="Mark all current tasks as complete">
+          <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+          <span class="hidden sm:inline">Mark All Done</span>
+        </button>
+
+        <!-- Import / Export Actions -->
+        <div class="relative group">
+          <button id="exportJsonBtn" class="p-2 sm:px-3 sm:py-1.5 text-xs font-medium rounded-lg border border-gray-700/60 hover:bg-gray-800/40 transition flex items-center gap-1.5 text-gray-300" title="Export tasks to JSON file">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span class="hidden md:inline">Export</span>
+          </button>
+        </div>
+
+        <label for="importJsonInput" class="cursor-pointer p-2 sm:px-3 sm:py-1.5 text-xs font-medium rounded-lg border border-gray-700/60 hover:bg-gray-800/40 transition flex items-center gap-1.5 text-gray-300" title="Import tasks from a JSON file">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          <span class="hidden md:inline">Import</span>
+          <input type="file" id="importJsonInput" accept=".json" class="sr-only">
+        </label>
+
+        <!-- Theme Toggle -->
+        <button id="themeToggleBtn" class="p-2 rounded-lg border border-gray-700/60 hover:bg-gray-800/40 transition text-gray-300" aria-label="Toggle dark/light color mode">
+          <svg id="themeIconSun" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <svg id="themeIconMoon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        </button>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 w-full flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LEFT SIDEBAR: METRICS & CATEGORY FILTERS (4 Cols on lg) -->
+    <aside class="lg:col-span-4 space-y-6">
+      
+      <!-- Progress Completion Card -->
+      <section class="glass-card rounded-2xl p-5" aria-labelledby="metrics-title">
+        <h2 id="metrics-title" class="text-xs uppercase font-semibold text-gray-400 tracking-wider mb-4 flex items-center justify-between">
+          <span>Overall Velocity</span>
+          <span id="progressPercentBadge" class="font-mono text-brand-500 font-bold">0%</span>
+        </h2>
+        
+        <div class="flex items-center gap-4">
+          <!-- Radial Progress Display -->
+          <div class="relative w-20 h-20 shrink-0">
+            <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+              <path class="text-gray-700/40" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <path id="progressCircleTrack" class="text-brand-500 transition-all duration-700 stroke-current" stroke-dasharray="0, 100" stroke-linecap="round" stroke-width="3.5" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center leading-none">
+              <span id="metricCompletedCount" class="font-bold text-lg font-mono">0</span>
+              <span class="text-[10px] text-gray-400 uppercase">done</span>
+            </div>
+          </div>
+
+          <!-- Counter Breakdown -->
+          <div class="flex-1 space-y-1.5 text-sm">
+            <div class="flex justify-between text-xs">
+              <span class="text-gray-400">Total Tasks:</span>
+              <span id="metricTotalCount" class="font-mono font-semibold">0</span>
+            </div>
+            <div class="flex justify-between text-xs">
+              <span class="text-gray-400">Active Pending:</span>
+              <span id="metricActiveCount" class="font-mono font-semibold text-amber-400">0</span>
+            </div>
+            <div class="flex justify-between text-xs">
+              <span class="text-gray-400">Urgent Priority:</span>
+              <span id="metricUrgentCount" class="font-mono font-semibold text-rose-400">0</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Category Filter Pills -->
+      <section class="glass-card rounded-2xl p-5" aria-labelledby="categories-heading">
+        <h2 id="categories-heading" class="text-xs uppercase font-semibold text-gray-400 tracking-wider mb-3">
+          Categories
+        </h2>
+        <div class="space-y-1" id="categoryFilterContainer">
+          <button data-cat="all" class="cat-filter-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition bg-brand-500/15 text-brand-400 border border-brand-500/20">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-brand-500"></span>
+              <span>All Categories</span>
+            </div>
+            <span id="countCatAll" class="font-mono text-[11px] opacity-75">0</span>
+          </button>
+          
+          <button data-cat="Work" class="cat-filter-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition hover:bg-gray-800/40 text-gray-400">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+              <span>Work &amp; Office</span>
+            </div>
+            <span id="countCatWork" class="font-mono text-[11px] opacity-75">0</span>
+          </button>
+
+          <button data-cat="Personal" class="cat-filter-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition hover:bg-gray-800/40 text-gray-400">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span>Personal Life</span>
+            </div>
+            <span id="countCatPersonal" class="font-mono text-[11px] opacity-75">0</span>
+          </button>
+
+          <button data-cat="Design" class="cat-filter-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition hover:bg-gray-800/40 text-gray-400">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+              <span>Design &amp; UI</span>
+            </div>
+            <span id="countCatDesign" class="font-mono text-[11px] opacity-75">0</span>
+          </button>
+
+          <button data-cat="Health" class="cat-filter-btn w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition hover:bg-gray-800/40 text-gray-400">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              <span>Health &amp; Habit</span>
+            </div>
+            <span id="countCatHealth" class="font-mono text-[11px] opacity-75">0</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Quick Action Hints -->
+      <div class="text-[11px] text-gray-500 p-2 space-y-1 leading-relaxed">
+        <p><kbd class="px-1.5 py-0.5 rounded bg-gray-800 border border-gray-700 text-gray-300 font-mono">Dbl-Click</kbd> on task title to edit directly</p>
+        <p><kbd class="px-1.5 py-0.5 rounded bg-gray-800 border border-gray-700 text-gray-300 font-mono">Enter</kbd> saves edits &bull; <kbd class="px-1.5 py-0.5 rounded bg-gray-800 border border-gray-700 text-gray-300 font-mono">Esc</kbd> cancels</p>
+        <p>Deleted items have an instantaneous <strong class="text-gray-400">Undo</strong> grace period</p>
+      </div>
+
+    </aside>
+
+    <!-- RIGHT/MAIN AREA: CONTROLS, FORM & TASK LIST (8 Cols on lg) -->
+    <section class="lg:col-span-8 flex flex-col space-y-4">
+      
+      <!-- QUICK TASK ENTRY FORM -->
+      <form id="createTaskForm" class="glass-card rounded-2xl p-4 transition-all focus-within:border-brand-500/50">
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input 
+            type="text" 
+            id="taskTitleInput" 
+            placeholder="Add a new task (e.g., Audit WCAG contrast on checkout page)..." 
+            required 
+            class="flex-1 bg-gray-900/40 border border-gray-700/60 rounded-xl px-4 py-2.5 text-sm placeholder-gray-500 focus:outline-none focus:border-brand-500 transition"
+          >
+          <button 
+            type="submit" 
+            class="bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs px-5 py-2.5 rounded-xl shadow-lg shadow-brand-500/20 transition flex items-center justify-center gap-1.5 shrink-0"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            <span>Add Task</span>
+          </button>
+        </div>
+
+        <!-- Optional Parameters Expandable Strip -->
+        <div class="mt-3 pt-3 border-t border-gray-800/80 flex flex-wrap items-center gap-3 text-xs">
+          <!-- Priority Selector -->
+          <div class="flex items-center gap-1.5">
+            <span class="text-gray-400 text-[11px]">Priority:</span>
+            <select id="taskPrioritySelect" class="bg-gray-800/70 border border-gray-700/60 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-brand-500">
+              <option value="Low">Low</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="High">High</option>
+              <option value="Urgent">Urgent</option>
+            </select>
+          </div>
+
+          <!-- Category Selector -->
+          <div class="flex items-center gap-1.5">
+            <span class="text-gray-400 text-[11px]">Category:</span>
+            <select id="taskCategorySelect" class="bg-gray-800/70 border border-gray-700/60 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-brand-500">
+              <option value="Work">Work</option>
+              <option value="Personal">Personal</option>
+              <option value="Design">Design</option>
+              <option value="Health">Health</option>
+            </select>
+          </div>
+
+          <!-- Due Date Picker -->
+          <div class="flex items-center gap-1.5">
+            <span class="text-gray-400 text-[11px]">Due:</span>
+            <input type="date" id="taskDueDateInput" class="bg-gray-800/70 border border-gray-700/60 rounded-lg px-2 py-0.5 text-xs text-gray-300 focus:outline-none focus:border-brand-500">
+          </div>
+
+          <!-- Optional Notes Drawer Toggle -->
+          <button type="button" id="toggleNotesBtn" class="text-gray-400 hover:text-brand-400 ml-auto text-[11px] flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            <span>+ Notes</span>
+          </button>
+        </div>
+
+        <!-- Hidden Notes Area -->
+        <div id="notesContainer" class="hidden mt-3">
+          <textarea id="taskNotesInput" rows="2" placeholder="Additional task context, links, or specifications..." class="w-full bg-gray-900/40 border border-gray-700/60 rounded-xl p-2.5 text-xs text-gray-300 placeholder-gray-500 focus:outline-none focus:border-brand-500"></textarea>
+        </div>
+      </form>
+
+      <!-- FILTER TABS & SEARCH BAR CONTROLS -->
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        
+        <!-- Status Filter Tabs: All, Active, Completed -->
+        <div class="flex bg-gray-900/50 p-1 rounded-xl border border-gray-800 shrink-0" role="tablist">
+          <button data-filter="all" class="status-tab-btn px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 bg-brand-600 text-white" role="tab" aria-selected="true">
+            <span>All</span>
+            <span id="badgeTabAll" class="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px] font-mono">0</span>
+          </button>
+          <button data-filter="active" class="status-tab-btn px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 text-gray-400 hover:text-white" role="tab" aria-selected="false">
+            <span>Active</span>
+            <span id="badgeTabActive" class="px-1.5 py-0.2 rounded-full bg-gray-800 text-[10px] font-mono">0</span>
+          </button>
+          <button data-filter="completed" class="status-tab-btn px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 text-gray-400 hover:text-white" role="tab" aria-selected="false">
+            <span>Completed</span>
+            <span id="badgeTabCompleted" class="px-1.5 py-0.2 rounded-full bg-gray-800 text-[10px] font-mono">0</span>
+          </button>
+        </div>
+
+        <!-- Search Input & Sort Options -->
+        <div class="flex items-center gap-2 flex-1 sm:max-w-xs">
+          <!-- Search Box -->
+          <div class="relative flex-1">
+            <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input 
+              type="search" 
+              id="searchInput" 
+              placeholder="Search tasks..." 
+              class="w-full bg-gray-900/50 border border-gray-800 rounded-xl pl-8 pr-3 py-1.5 text-xs placeholder-gray-500 focus:outline-none focus:border-brand-500 transition"
+            >
+          </div>
+
+          <!-- Sort Select -->
+          <select id="sortSelect" class="bg-gray-900/50 border border-gray-800 rounded-xl px-2.5 py-1.5 text-xs text-gray-400 focus:outline-none focus:border-brand-500 shrink-0">
+            <option value="created_desc">Newest First</option>
+            <option value="created_asc">Oldest First</option>
+            <option value="priority_desc">Highest Priority</option>
+            <option value="due_asc">Earliest Due Date</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- MAIN TASK LIST CONTAINER (DELEGATED EVENTS ATTACHED HERE) -->
+      <ul id="taskListContainer" class="space-y-2.5 flex-1" aria-live="polite">
+        <!-- Rendered dynamically via state engine -->
+      </ul>
+
+      <!-- EMPTY STATE FALLBACK (SHOWN WHEN LIST IS EMPTY) -->
+      <div id="emptyStateContainer" class="hidden glass-card rounded-2xl p-10 text-center flex-col items-center justify-center space-y-3">
+        <div class="w-14 h-14 rounded-2xl bg-gray-800/60 border border-gray-700/60 flex items-center justify-center text-gray-500 text-2xl">
+          📑
+        </div>
+        <div>
+          <h3 class="font-semibold text-sm text-gray-300">No tasks found</h3>
+          <p id="emptyStateMsg" class="text-xs text-gray-500 mt-0.5 max-w-xs mx-auto">
+            Try adjusting your search criteria or create a new task to get started.
+          </p>
+        </div>
+        <button id="emptyStateSeedBtn" class="text-xs text-brand-400 hover:underline pt-1">
+          Generate Demo Tasks
+        </button>
+      </div>
+
+      <!-- LIST FOOTER: CLEAR COMPLETED -->
+      <div id="listFooterBar" class="flex items-center justify-between text-xs text-gray-500 pt-2 px-1">
+        <span id="footerCountSummary">Showing 0 of 0 tasks</span>
+        <button id="clearCompletedBtn" class="hover:text-rose-400 transition flex items-center gap-1">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <span>Clear Completed</span>
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- TOAST NOTIFICATION STACK CONTAINER -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full px-4" aria-live="assertive"></div>
+
+  <!-- VANILLA JAVASCRIPT STATE ENGINE & CONTROLLER -->
+  <script>
+    (function () {
+      'use strict';
+
+      /* ====================================================================
+         1. APPLICATION CONSTANTS & LOCAL STORAGE KEY
+         ==================================================================== */
+      const STORAGE_KEY = 'todo_app_state_v1';
+
+      // Priority sort weights
+      const PRIORITY_WEIGHTS = {
+        'Urgent': 4,
+        'High': 3,
+        'Medium': 2,
+        'Low': 1
+      };
+
+      // Initial Demo Seed Tasks
+      const SEED_TASKS = [
+        {
+          id: 'task_demo_1',
+          title: 'Implement WCAG 2.2 contrast compliance for dark theme',
+          completed: false,
+          priority: 'High',
+          category: 'Design',
+          dueDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
+          notes: 'Ensure body copy hits minimum 4.5:1 ratio and interactive targets measure 44x44px minimum.',
+          createdAt: Date.now() - 3600000 * 5,
+          subtasks: [
+            { id: 'sub_1', text: 'Color audit with axe-core', done: true },
+            { id: 'sub_2', text: 'Keyboard focus ring calibration', done: false }
+          ]
+        },
+        {
+          id: 'task_demo_2',
+          title: 'Publish TypeScript definitions for TaskFlow store engine',
+          completed: false,
+          priority: 'Urgent',
+          category: 'Work',
+          dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+          notes: 'Package into NPM enterprise scope with semantic versioning tags.',
+          createdAt: Date.now() - 3600000 * 2,
+          subtasks: []
+        },
+        {
+          id: 'task_demo_3',
+          title: 'Hydration and 10k steps wellness milestone',
+          completed: true,
+          priority: 'Low',
+          category: 'Health',
+          dueDate: new Date().toISOString().split('T')[0],
+          notes: 'Daily physical health check completed.',
+          createdAt: Date.now() - 3600000 * 12,
+          subtasks: []
+        }
+      ];
+
+      /* ====================================================================
+         2. CENTRALIZED STATE STORE
+         ==================================================================== */
+      const Store = {
+        state: {
+          tasks: [],
+          statusFilter: 'all',       // 'all' | 'active' | 'completed'
+          categoryFilter: 'all',     // 'all' | 'Work' | 'Personal' | 'Design' | 'Health'
+          searchQuery: '',
+          sortOrder: 'created_desc', // 'created_desc' | 'created_asc' | 'priority_desc' | 'due_asc'
+        },
+
+        // Last soft-deleted task for Undo operation
+        lastDeletedItem: null,
+        undoTimerId: null,
+
+        // Initialize Store from LocalStorage or Fallback to Seed
+        init() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              this.state.tasks = Array.isArray(parsed.tasks) ? parsed.tasks : SEED_TASKS;
+              this.state.sortOrder = parsed.sortOrder || 'created_desc';
+            } else {
+              this.state.tasks = [...SEED_TASKS];
+              this.persist();
+            }
+          } catch (e) {
+            console.error('Storage parse failure, fallback initialized:', e);
+            this.state.tasks = [...SEED_TASKS];
+          }
+        },
+
+        // Save current tasks to browser LocalStorage
+        persist() {
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+              tasks: this.state.tasks,
+              sortOrder: this.state.sortOrder
+            }));
+          } catch (err) {
+            console.error('Failed to write to localStorage:', err);
+          }
+        },
+
+        // CRUD: Create Task
+        addTask(payload) {
+          const newTask = {
+            id: 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+            title: payload.title.trim(),
+            priority: payload.priority || 'Medium',
+            category: payload.category || 'Work',
+            dueDate: payload.dueDate || '',
+            notes: payload.notes ? payload.notes.trim() : '',
+            completed: false,
+            createdAt: Date.now(),
+            subtasks: []
+          };
+          this.state.tasks.unshift(newTask);
+          this.persist();
+          return newTask;
+        },
+
+        // CRUD: Toggle Complete
+        toggleTask(id) {
+          const task = this.state.tasks.find(t => t.id === id);
+          if (task) {
+            task.completed = !task.completed;
+            this.persist();
+          }
+        },
+
+        // CRUD: Update Title
+        updateTaskTitle(id, newTitle) {
+          const clean = newTitle.trim();
+          if (!clean) return false;
+          const task = this.state.tasks.find(t => t.id === id);
+          if (task) {
+            task.title = clean;
+            this.persist();
+            return true;
+          }
+          return false;
+        },
+
+        // CRUD: Delete Task (with Undo backup)
+        deleteTask(id) {
+          const idx = this.state.tasks.findIndex(t => t.id === id);
+          if (idx !== -1) {
+            this.lastDeletedItem = { task: this.state.tasks[idx], originalIndex: idx };
+            this.state.tasks.splice(idx, 1);
+            this.persist();
+            return true;
+          }
+          return false;
+        },
+
+        // CRUD: Undo Last Delete
+        undoDelete() {
+          if (this.lastDeletedItem) {
+            const { task, originalIndex } = this.lastDeletedItem;
+            this.state.tasks.splice(originalIndex, 0, task);
+            this.lastDeletedItem = null;
+            if (this.undoTimerId) clearTimeout(this.undoTimerId);
+            this.persist();
+            return true;
+          }
+          return false;
+        },
+
+        // CRUD: Subtasks
+        addSubtask(taskId, text) {
+          const task = this.state.tasks.find(t => t.id === taskId);
+          if (task && text.trim()) {
+            task.subtasks.push({
+              id: 'sub_' + Date.now(),
+              text: text.trim(),
+              done: false
+            });
+            this.persist();
+          }
+        },
+
+        toggleSubtask(taskId, subtaskId) {
+          const task = this.state.tasks.find(t => t.id === taskId);
+          if (task) {
+            const sub = task.subtasks.find(s => s.id === subtaskId);
+            if (sub) {
+              sub.done = !sub.done;
+              this.persist();
+            }
+          }
+        },
+
+        // Batch: Mark All Complete
+        markAllComplete() {
+          let updated = 0;
+          this.state.tasks.forEach(t => {
+            if (!t.completed) {
+              t.completed = true;
+              updated++;
+            }
+          });
+          if (updated > 0) this.persist();
+          return updated;
+        },
+
+        // Batch: Clear Completed
+        clearCompleted() {
+          const count = this.state.tasks.filter(t => t.completed).length;
+          this.state.tasks = this.state.tasks.filter(t => !t.completed);
+          this.persist();
+          return count;
+        },
+
+        // Get processed, filtered and sorted list
+        getComputedTasks() {
+          let list = [...this.state.tasks];
+
+          // 1. Status Filter
+          if (this.state.statusFilter === 'active') {
+            list = list.filter(t => !t.completed);
+          } else if (this.state.statusFilter === 'completed') {
+            list = list.filter(t => t.completed);
+          }
+
+          // 2. Category Filter
+          if (this.state.categoryFilter !== 'all') {
+            list = list.filter(t => t.category === this.state.categoryFilter);
+          }
+
+          // 3. Search Query
+          if (this.state.searchQuery) {
+            const q = this.state.searchQuery.toLowerCase();
+            list = list.filter(t => 
+              t.title.toLowerCase().includes(q) || 
+              (t.notes && t.notes.toLowerCase().includes(q))
+            );
+          }
+
+          // 4. Sorting
+          list.sort((a, b) => {
+            switch (this.state.sortOrder) {
+              case 'created_asc':
+                return a.createdAt - b.createdAt;
+              case 'priority_desc':
+                return (PRIORITY_WEIGHTS[b.priority] || 0) - (PRIORITY_WEIGHTS[a.priority] || 0);
+              case 'due_asc':
+                if (!a.dueDate) return 1;
+                if (!b.dueDate) return -1;
+                return new Date(a.dueDate) - new Date(b.dueDate);
+              case 'created_desc':
+              default:
+                return b.createdAt - a.createdAt;
+            }
+          });
+
+          return list;
+        }
+      };
+
+      /* ====================================================================
+         3. DOM ELEMENT CACHE
+         ==================================================================== */
+      const DOM = {
+        taskList: document.getElementById('taskListContainer'),
+        emptyState: document.getElementById('emptyStateContainer'),
+        emptyStateMsg: document.getElementById('emptyStateMsg'),
+        emptyStateSeedBtn: document.getElementById('emptyStateSeedBtn'),
+        listFooterBar: document.getElementById('listFooterBar'),
+        footerCountSummary: document.getElementById('footerCountSummary'),
+        
+        // Form Controls
+        createForm: document.getElementById('createTaskForm'),
+        titleInput: document.getElementById('taskTitleInput'),
+        prioritySelect: document.getElementById('taskPrioritySelect'),
+        categorySelect: document.getElementById('taskCategorySelect'),
+        dueDateInput: document.getElementById('taskDueDateInput'),
+        notesInput: document.getElementById('taskNotesInput'),
+        toggleNotesBtn: document.getElementById('toggleNotesBtn'),
+        notesContainer: document.getElementById('notesContainer'),
+
+        // Filters & Search
+        statusTabs: document.querySelectorAll('.status-tab-btn'),
+        catButtons: document.querySelectorAll('.cat-filter-btn'),
+        searchInput: document.getElementById('searchInput'),
+        sortSelect: document.getElementById('sortSelect'),
+
+        // Metric Counters
+        progressPercent: document.getElementById('progressPercentBadge'),
+        progressCircle: document.getElementById('progressCircleTrack'),
+        metricCompleted: document.getElementById('metricCompletedCount'),
+        metricTotal: document.getElementById('metricTotalCount'),
+        metricActive: document.getElementById('metricActiveCount'),
+        metricUrgent: document.getElementById('metricUrgentCount'),
+
+        // Tab Badges
+        badgeTabAll: document.getElementById('badgeTabAll'),
+        badgeTabActive: document.getElementById('badgeTabActive'),
+        badgeTabCompleted: document.getElementById('badgeTabCompleted'),
+
+        // Category Badges
+        countCatAll: document.getElementById('countCatAll'),
+        countCatWork: document.getElementById('countCatWork'),
+        countCatPersonal: document.getElementById('countCatPersonal'),
+        countCatDesign: document.getElementById('countCatDesign'),
+        countCatHealth: document.getElementById('countCatHealth'),
+
+        // Bulk Buttons
+        batchCompleteBtn: document.getElementById('batchCompleteBtn'),
+        clearCompletedBtn: document.getElementById('clearCompletedBtn'),
+        exportJsonBtn: document.getElementById('exportJsonBtn'),
+        importJsonInput: document.getElementById('importJsonInput'),
+
+        // Toasts & Themes
+        toastContainer: document.getElementById('toastContainer'),
+        themeToggleBtn: document.getElementById('themeToggleBtn'),
+        themeIconSun: document.getElementById('themeIconSun'),
+        themeIconMoon: document.getElementById('themeIconMoon'),
+      };
+
+      /* ====================================================================
+         4. TOAST NOTIFICATION UTILITY WITH UNDO ACTION
+         ==================================================================== */
+      function showToast(message, type = 'info', undoCallback = null) {
+        const toast = document.createElement('div');
+        toast.className = 'pointer-events-auto flex items-center justify-between p-3.5 rounded-xl border glass-card shadow-2xl text-xs space-x-3 transition-all duration-300 transform translate-y-3 opacity-0';
+        
+        let iconHtml = 'ℹ️';
+        if (type === 'success') iconHtml = '✅';
+        if (type === 'delete') iconHtml = '🗑️';
+
+        toast.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <span>${iconHtml}</span>
+            <span class="text-gray-200 font-medium">${escapeHtml(message)}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            ${undoCallback ? `<button class="undo-btn px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-[11px] transition">Undo</button>` : ''}
+            <button class="close-toast-btn text-gray-500 hover:text-gray-300">&times;</button>
+          </div>
+        `;
+
+        DOM.toastContainer.appendChild(toast);
+
+        // Slide in animation
+        requestAnimationFrame(() => {
+          toast.classList.remove('translate-y-3', 'opacity-0');
+        });
+
+        // Close logic
+        const removeToast = () => {
+          toast.classList.add('opacity-0', 'translate-y-2');
+          setTimeout(() => toast.remove(), 250);
+        };
+
+        if (undoCallback) {
+          toast.querySelector('.undo-btn').addEventListener('click', () => {
+            undoCallback();
+            removeToast();
+          });
+        }
+
+        toast.querySelector('.close-toast-btn').addEventListener('click', removeToast);
+
+        // Auto expire in 4.5 seconds
+        setTimeout(removeToast, 4500);
+      }
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return str
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      /* ====================================================================
+         5. VIEW ENGINE: DOM RENDERING PIPELINE
+         ==================================================================== */
+      function render() {
+        const tasksToDisplay = Store.getComputedTasks();
+        const allTasks = Store.state.tasks;
+
+        // 1. Update Metrics & Badges
+        updateMetrics(allTasks);
+
+        // 2. Render List or Empty State
+        if (tasksToDisplay.length === 0) {
+          DOM.taskList.innerHTML = '';
+          DOM.emptyState.classList.remove('hidden');
+          DOM.emptyState.classList.add('flex');
+          DOM.listFooterBar.classList.add('hidden');
+
+          if (Store.state.searchQuery) {
+            DOM.emptyStateMsg.textContent = `No tasks matching "${Store.state.searchQuery}".`;
+          } else if (Store.state.statusFilter !== 'all') {
+            DOM.emptyStateMsg.textContent = `No ${Store.state.statusFilter} tasks found in this view.`;
+          } else {
+            DOM.emptyStateMsg.textContent = 'All task queues are clear! Create a task above to plan next actions.';
+          }
+        } else {
+          DOM.emptyState.classList.add('hidden');
+          DOM.emptyState.classList.remove('flex');
+          DOM.listFooterBar.classList.remove('hidden');
+          DOM.footerCountSummary.textContent = `Showing ${tasksToDisplay.length} of ${allTasks.length} task${allTasks.length === 1 ? '' : 's'}`;
+
+          // Construct and inject list items using DocumentFragment
+          const fragment = document.createDocumentFragment();
+          tasksToDisplay.forEach(task => {
+            fragment.appendChild(createTaskNode(task));
+          });
+
+          DOM.taskList.innerHTML = '';
+          DOM.taskList.appendChild(fragment);
+        }
+      }
+
+      // Generate Single Task Element
+      function createTaskNode(task) {
+        const li = document.createElement('li');
+        li.className = 'glass-card rounded-xl p-3.5 transition-all duration-200 hover:border-gray-700/80 group';
+        li.dataset.taskId = task.id;
+
+        // Priority Color Configuration
+        const priorityColors = {
+          'Low': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+          'Medium': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+          'High': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+          'Urgent': 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+        };
+
+        // Category Tag Colors
+        const categoryColors = {
+          'Work': 'bg-blue-500/15 text-blue-300',
+          'Personal': 'bg-emerald-500/15 text-emerald-300',
+          'Design': 'bg-purple-500/15 text-purple-300',
+          'Health': 'bg-rose-500/15 text-rose-300',
+        };
+
+        const subtasksDone = task.subtasks.filter(s => s.done).length;
+        const subtasksTotal = task.subtasks.length;
+
+        li.innerHTML = `
+          <div class="flex items-start gap-3">
+            
+            <!-- Accessible Custom Checkbox Toggle -->
+            <button 
+              type="button" 
+              class="action-toggle-complete mt-0.5 w-5 h-5 rounded-md border flex items-center justify-center transition-all ${task.completed ? 'bg-brand-600 border-brand-500 text-white' : 'border-gray-600 hover:border-brand-500 bg-gray-900/40 text-transparent'}"
+              aria-label="${task.completed ? 'Mark task as incomplete' : 'Mark task as complete'}"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+            </button>
+
+            <!-- Main Task Body -->
+            <div class="flex-1 min-w-0">
+              
+              <!-- Title Row & Inline Edit Container -->
+              <div class="task-title-wrapper flex items-baseline justify-between gap-2">
+                <span 
+                  tabindex="0"
+                  class="task-title font-medium text-sm leading-snug cursor-pointer select-none ${task.completed ? 'completed' : 'text-gray-100'}" 
+                  title="Double click or press enter to edit"
+                >
+                  ${escapeHtml(task.title)}
+                </span>
+                
+                <input 
+                  type="text" 
+                  class="task-inline-edit-input hidden flex-1 bg-gray-900 border border-brand-500 rounded px-2 py-0.5 text-sm text-white focus:outline-none"
+                  value="${escapeHtml(task.title)}"
+                >
+              </div>
+
+              <!-- Metadata Row: Badges, Due Date & Notes Trigger -->
+              <div class="flex flex-wrap items-center gap-2 mt-2 text-[11px]">
+                
+                <!-- Priority Badge -->
+                <span class="px-2 py-0.5 rounded-full border font-mono font-medium ${priorityColors[task.priority] || priorityColors.Medium}">
+                  ${task.priority}
+                </span>
+
+                <!-- Category Badge -->
+                <span class="px-2 py-0.5 rounded-md font-medium ${categoryColors[task.category] || 'bg-gray-800 text-gray-300'}">
+                  ${task.category}
+                </span>
+
+                <!-- Due Date Indicator -->
+                ${task.dueDate ? `
+                  <span class="flex items-center gap-1 text-gray-400 font-mono">
+                    <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span>${task.dueDate}</span>
+                  </span>
+                ` : ''}
+
+                <!-- Subtask Badge -->
+                ${subtasksTotal > 0 ? `
+                  <button type="button" class="action-toggle-subtasks text-gray-400 hover:text-brand-400 flex items-center gap-1 font-mono">
+                    <span>checklist (${subtasksDone}/${subtasksTotal})</span>
+                  </button>
+                ` : `
+                  <button type="button" class="action-add-subtask-quick opacity-0 group-hover:opacity-100 text-gray-500 hover:text-gray-300 flex items-center gap-0.5 transition">
+                    <span>+ subtask</span>
+                  </button>
+                `}
+              </div>
+
+              <!-- Optional Task Notes Accordion -->
+              ${task.notes ? `
+                <p class="text-xs text-gray-400 mt-2 bg-gray-900/30 p-2 rounded-lg border border-gray-800/60 leading-relaxed font-sans">
+                  ${escapeHtml(task.notes)}
+                </p>
+              ` : ''}
+
+              <!-- Subtasks Checklist Container -->
+              <div class="subtasks-container ${subtasksTotal > 0 ? '' : 'hidden'} mt-2.5 pt-2 border-t border-gray-800/60 space-y-1.5">
+                <div class="subtask-list space-y-1">
+                  ${task.subtasks.map(sub => `
+                    <div class="flex items-center gap-2 text-xs text-gray-300 group/sub" data-sub-id="${sub.id}">
+                      <button type="button" class="action-toggle-subtask w-3.5 h-3.5 rounded border flex items-center justify-center ${sub.done ? 'bg-indigo-600/80 border-indigo-500 text-white' : 'border-gray-600 text-transparent'}">
+                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                      </button>
+                      <span class="${sub.done ? 'line-through text-gray-500' : ''}">${escapeHtml(sub.text)}</span>
+                    </div>
+                  `).join('')}
+                </div>
+
+                <!-- Subtask Adder Input Form -->
+                <div class="flex items-center gap-1.5 mt-2">
+                  <input type="text" placeholder="Add a subtask..." class="new-subtask-input flex-1 bg-gray-900/60 border border-gray-800 rounded px-2 py-0.5 text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-brand-500">
+                  <button type="button" class="action-commit-subtask px-2 py-0.5 rounded bg-gray-800 hover:bg-gray-700 text-[11px] text-gray-300">Add</button>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Task Actions: Edit & Delete -->
+            <div class="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition shrink-0">
+              <button 
+                type="button" 
+                class="action-edit-task p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-200" 
+                aria-label="Edit task title" 
+                title="Edit task"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+              </button>
+              <button 
+                type="button" 
+                class="action-delete-task p-1.5 rounded-lg hover:bg-rose-500/10 text-gray-400 hover:text-rose-400" 
+                aria-label="Delete task" 
+                title="Delete task"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+
+          </div>
+        `;
+
+        return li;
+      }
+
+      // Update Dashboard Metrics and Filter Tabs
+      function updateMetrics(tasks) {
+        const total = tasks.length;
+        const completed = tasks.filter(t => t.completed).length;
+        const active = total - completed;
+        const urgent = tasks.filter(t => !t.completed && t.priority === 'Urgent').length;
+        const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+        // Metric Numbers
+        DOM.metricTotal.textContent = total;
+        DOM.metricCompleted.textContent = completed;
+        DOM.metricActive.textContent = active;
+        DOM.metricUrgent.textContent = urgent;
+        DOM.progressPercent.textContent = `${percent}%`;
+
+        // SVG Radial Gauge animation
+        DOM.progressCircle.setAttribute('stroke-dasharray', `${percent}, 100`);
+
+        // Filter Tab Badges
+        DOM.badgeTabAll.textContent = total;
+        DOM.badgeTabActive.textContent = active;
+        DOM.badgeTabCompleted.textContent = completed;
+
+        // Category Badges Count
+        DOM.countCatAll.textContent = total;
+        DOM.countCatWork.textContent = tasks.filter(t => t.category === 'Work').length;
+        DOM.countCatPersonal.textContent = tasks.filter(t => t.category === 'Personal').length;
+        DOM.countCatDesign.textContent = tasks.filter(t => t.category === 'Design').length;
+        DOM.countCatHealth.textContent = tasks.filter(t => t.category === 'Health').length;
+      }
+
+      /* ====================================================================
+         6. DELEGATED EVENT LISTENERS (CONTAINER ARCHITECTURE)
+         ==================================================================== */
+      function setupEventDelegation() {
+        
+        // DELEGATED CLICK HANDLERS ON TASK CONTAINER
+        DOM.taskList.addEventListener('click', (e) => {
+          const taskNode = e.target.closest('[data-task-id]');
+          if (!taskNode) return;
+          const taskId = taskNode.dataset.taskId;
+
+          // 1. Toggle Complete Button
+          if (e.target.closest('.action-toggle-complete')) {
+            Store.toggleTask(taskId);
+            render();
+            return;
+          }
+
+          // 2. Delete Task Button
+          if (e.target.closest('.action-delete-task')) {
+            const task = Store.state.tasks.find(t => t.id === taskId);
+            const titleSnippet = task ? task.title.slice(0, 24) + '...' : 'Task';
+            Store.deleteTask(taskId);
+            render();
+
+            showToast(`Deleted "${titleSnippet}"`, 'delete', () => {
+              Store.undoDelete();
+              render();
+              showToast('Task restored!', 'success');
+            });
+            return;
+          }
+
+          // 3. Edit Action Button
+          if (e.target.closest('.action-edit-task')) {
+            activateInlineEdit(taskNode);
+            return;
+          }
+
+          // 4. Toggle Subtask completion
+          const subtaskBtn = e.target.closest('.action-toggle-subtask');
+          if (subtaskBtn) {
+            const subRow = e.target.closest('[data-sub-id]');
+            if (subRow) {
+              Store.toggleSubtask(taskId, subRow.dataset.subId);
+              render();
+            }
+            return;
+          }
+
+          // 5. Commit new Subtask button
+          if (e.target.closest('.action-commit-subtask')) {
+            const input = taskNode.querySelector('.new-subtask-input');
+            if (input && input.value.trim()) {
+              Store.addSubtask(taskId, input.value);
+              input.value = '';
+              render();
+            }
+            return;
+          }
+
+          // 6. Quick toggle subtasks accordion
+          if (e.target.closest('.action-toggle-subtasks') || e.target.closest('.action-add-subtask-quick')) {
+            const subContainer = taskNode.querySelector('.subtasks-container');
+            if (subContainer) {
+              subContainer.classList.toggle('hidden');
+              const input = subContainer.querySelector('.new-subtask-input');
+              if (input && !subContainer.classList.contains('hidden')) input.focus();
+            }
+            return;
+          }
+        });
+
+        // DOUBLE-CLICK INLINE EDIT ON TASK TITLE
+        DOM.taskList.addEventListener('dblclick', (e) => {
+          const titleElem = e.target.closest('.task-title');
+          if (titleElem) {
+            const taskNode = e.target.closest('[data-task-id]');
+            activateInlineEdit(taskNode);
+          }
+        });
+
+        // KEYBOARD ACCESSIBILITY ON LIST
+        DOM.taskList.addEventListener('keydown', (e) => {
+          // Commit subtask on Enter within subtask input
+          if (e.key === 'Enter' && e.target.classList.contains('new-subtask-input')) {
+            e.preventDefault();
+            const taskNode = e.target.closest('[data-task-id]');
+            if (taskNode && e.target.value.trim()) {
+              Store.addSubtask(taskNode.dataset.taskId, e.target.value);
+              e.target.value = '';
+              render();
+            }
+            return;
+          }
+
+          // In-line editing handlers
+          if (e.target.classList.contains('task-inline-edit-input')) {
+            const taskNode = e.target.closest('[data-task-id]');
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              finishInlineEdit(taskNode, true);
+            } else if (e.key === 'Escape') {
+              e.preventDefault();
+              finishInlineEdit(taskNode, false);
+            }
+          }
+        });
+
+        // BLUR EVENT FOR INLINE EDITING (FOCUS LOST)
+        DOM.taskList.addEventListener('focusout', (e) => {
+          if (e.target.classList.contains('task-inline-edit-input')) {
+            const taskNode = e.target.closest('[data-task-id]');
+            finishInlineEdit(taskNode, true);
+          }
+        });
+      }
+
+      // Inline Edit Activation
+      function activateInlineEdit(taskNode) {
+        const titleSpan = taskNode.querySelector('.task-title');
+        const inputField = taskNode.querySelector('.task-inline-edit-input');
+        if (!titleSpan || !inputField) return;
+
+        titleSpan.classList.add('hidden');
+        inputField.classList.remove('hidden');
+        inputField.focus();
+        inputField.select();
+      }
+
+      function finishInlineEdit(taskNode, shouldCommit) {
+        const titleSpan = taskNode.querySelector('.task-title');
+        const inputField = taskNode.querySelector('.task-inline-edit-input');
+        if (!titleSpan || !inputField) return;
+
+        if (shouldCommit) {
+          const newTitle = inputField.value.trim();
+          if (newTitle) {
+            Store.updateTaskTitle(taskNode.dataset.taskId, newTitle);
+          }
+        }
+        render();
+      }
+
+      /* ====================================================================
+         7. CONTROLS, FILTERS & UTILITY LISTENERS
+         ==================================================================== */
+      function setupControls() {
+        
+        // 1. Create Task Submit
+        DOM.createForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const title = DOM.titleInput.value.trim();
+          if (!title) return;
+
+          Store.addTask({
+            title: title,
+            priority: DOM.prioritySelect.value,
+            category: DOM.categorySelect.value,
+            dueDate: DOM.dueDateInput.value,
+            notes: DOM.notesInput.value
+          });
+
+          // Reset Form and keep UX fast
+          DOM.titleInput.value = '';
+          DOM.notesInput.value = '';
+          DOM.dueDateInput.value = '';
+          DOM.notesContainer.classList.add('hidden');
+
+          render();
+          showToast('Task added successfully!', 'success');
+        });
+
+        // 2. Toggle Notes Drawer in Form
+        DOM.toggleNotesBtn.addEventListener('click', () => {
+          DOM.notesContainer.classList.toggle('hidden');
+          if (!DOM.notesContainer.classList.contains('hidden')) {
+            DOM.notesInput.focus();
+          }
+        });
+
+        // 3. Status Filters (All, Active, Completed)
+        DOM.statusTabs.forEach(tab => {
+          tab.addEventListener('click', () => {
+            DOM.statusTabs.forEach(t => {
+              t.classList.remove('bg-brand-600', 'text-white');
+              t.classList.add('text-gray-400');
+              t.setAttribute('aria-selected', 'false');
+            });
+
+            tab.classList.remove('text-gray-400');
+            tab.classList.add('bg-brand-600', 'text-white');
+            tab.setAttribute('aria-selected', 'true');
+
+            Store.state.statusFilter = tab.dataset.filter;
+            render();
+          });
+        });
+
+        // 4. Category Filter Buttons
+        DOM.catButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            DOM.catButtons.forEach(b => {
+              b.classList.remove('bg-brand-500/15', 'text-brand-400', 'border', 'border-brand-500/20');
+              b.classList.add('text-gray-400');
+            });
+
+            btn.classList.remove('text-gray-400');
+            btn.classList.add('bg-brand-500/15', 'text-brand-400', 'border', 'border-brand-500/20');
+
+            Store.state.categoryFilter = btn.dataset.cat;
+            render();
+          });
+        });
+
+        // 5. Search Bar Input
+        DOM.searchInput.addEventListener('input', (e) => {
+          Store.state.searchQuery = e.target.value.trim();
+          render();
+        });
+
+        // 6. Sort Select Change
+        DOM.sortSelect.addEventListener('change', (e) => {
+          Store.state.sortOrder = e.target.value;
+          Store.persist();
+          render();
+        });
+
+        // 7. Batch Complete Button
+        DOM.batchCompleteBtn.addEventListener('click', () => {
+          const updated = Store.markAllComplete();
+          if (updated > 0) {
+            render();
+            showToast(`Marked ${updated} tasks as complete!`, 'success');
+          } else {
+            showToast('All tasks are already completed.', 'info');
+          }
+        });
+
+        // 8. Clear Completed Button
+        DOM.clearCompletedBtn.addEventListener('click', () => {
+          const cleared = Store.clearCompleted();
+          if (cleared > 0) {
+            render();
+            showToast(`Cleared ${cleared} completed task${cleared > 1 ? 's' : ''}.`, 'delete');
+          }
+        });
+
+        // 9. Demo Seed Tasks Button
+        DOM.emptyStateSeedBtn.addEventListener('click', () => {
+          Store.state.tasks = [...SEED_TASKS];
+          Store.persist();
+          render();
+          showToast('Loaded demo tasks.', 'success');
+        });
+
+        // 10. Export to JSON File
+        DOM.exportJsonBtn.addEventListener('click', () => {
+          const payload = JSON.stringify(Store.state.tasks, null, 2);
+          const blob = new Blob([payload], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `tasks_backup_${new Date().toISOString().split('T')[0]}.json`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          showToast('JSON backup file exported!', 'success');
+        });
+
+        // 11. Import from JSON File
+        DOM.importJsonInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            try {
+              const imported = JSON.parse(event.target.result);
+              if (Array.isArray(imported)) {
+                Store.state.tasks = imported;
+                Store.persist();
+                render();
+                showToast(`Successfully imported ${imported.length} tasks!`, 'success');
+              } else {
+                showToast('Invalid file format. JSON array expected.', 'delete');
+              }
+            } catch (err) {
+              showToast('Error reading JSON file.', 'delete');
+            }
+          };
+          reader.readAsText(file);
+          e.target.value = ''; // Reset input
+        });
+
+        // 12. Theme Switcher (Dark / Light)
+        DOM.themeToggleBtn.addEventListener('click', () => {
+          const html = document.documentElement;
+          const currentTheme = html.getAttribute('data-theme') || 'dark';
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          
+          html.setAttribute('data-theme', newTheme);
+          localStorage.setItem('taskflow_theme', newTheme);
+          updateThemeIcons(newTheme);
+        });
+
+        // Initial Theme Check
+        const savedTheme = localStorage.getItem('taskflow_theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcons(savedTheme);
+      }
+
+      function updateThemeIcons(theme) {
+        if (theme === 'dark') {
+          DOM.themeIconSun.classList.add('hidden');
+          DOM.themeIconMoon.classList.remove('hidden');
+        } else {
+          DOM.themeIconSun.classList.remove('hidden');
+          DOM.themeIconMoon.classList.add('hidden');
+        }
+      }
+
+      /* ====================================================================
+         8. INITIALIZATION
+         ==================================================================== */
+      Store.init();
+      setupEventDelegation();
+      setupControls();
+      render();
+
+    })();
+  </script>
+</body>
+</html>
